@@ -210,10 +210,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel'])) {
 
 <?php
 function sendToLokiAI($prompt) {
-    $url = "https://parthsadaria-lokiai.hf.space/chat/completions";
+    $url = "";
     $headers = [ 
         "Content-Type: application/json",
-        "Authorization: Bearer sigma"
+        "Authorization: Bearer "
     ];
     $data = [
         "model" => "mistral",
