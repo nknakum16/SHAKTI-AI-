@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shakti AI - Login/Signup</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="auth_style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">S</div>
+                <h1 class="auth-title">Shakti AI</h1>
+                <p class="auth-subtitle">Your Intelligent Assistant</p>
+            </div>
+
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">Login</div>
+                <div class="auth-tab" data-tab="signup">Sign Up</div>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-control" name="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-control" name="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn-auth">Sign In</button>
+            </form>
+
+            <form id="signupForm" class="auth-form" style="display: none;">
+
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-control" name="full_name" placeholder="Enter your full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-control" name="email" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-control" name="password" placeholder="Create a password" required minlength="6">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" name="confirm_password" placeholder="Confirm your password" required>
+                </div>
+
+                <button type="submit" class="btn-auth">Create Account</button>
+            </form>
+
+            <div class="auth-footer">
+                <p>By continuing, you agree to our <a href="#" class="auth-link">Terms of Service</a> and <a href="#" class="auth-link">Privacy Policy</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const tabs = document.querySelectorAll('.auth-tab');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Tab switching with smooth animation
+            tabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Remove active class from all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Hide error message
+                    errorMessage.style.display = 'none';
+                    
+                    // Switch forms with fade effect
+                    if (tab.dataset.tab === 'login') {
+                        signupForm.style.opacity = '0';
+                        setTimeout(() => {
+                            signupForm.style.display = 'none';
+                            loginForm.style.display = 'block';
+                            loginForm.style.opacity = '1';
+                        }, 150);
+                    } else {
+                        loginForm.style.opacity = '0';
+                        setTimeout(() => {
+                            loginForm.style.display = 'none';
+                            signupForm.style.display = 'block';
+                            signupForm.style.opacity = '1';
+                        }, 150);
+                    }
+                });
+            });
+
+            // Enhanced form validation
+            function validateEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+
+            function validatePassword(password) {
+                return password.length >= 6;
+            }
+
+            function showError(message) {
+                errorMessage.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i>${message}`;
+                errorMessage.style.display = 'block';
+                errorMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            function setButtonLoading(button, loading) {
+                if (loading) {
+                    button.classList.add('loading');
+                    button.disabled = true;
+                    button.innerHTML = 'Please wait...';
+                } else {
+                    button.classList.remove('loading');
+                    button.disabled = false;
+                }
+            }
+
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const email = formData.get('email')?.trim();
+                const password = formData.get('password');
+                const submitBtn = this.querySelector('.btn-auth');
+
+                errorMessage.style.display = 'none';
+
+                if (!email || !password) {
+                    showError('Please fill in all fields');
+                    return;
+                }
+
+                if (!validateEmail(email)) {
+                    showError('Please enter a valid email address');
+                    return;
+                }
+
+                setButtonLoading(submitBtn, true);
+
+                try {
+                    const response = await fetch('login.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            password: password
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                        
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Welcome Back!',
+                            text: `Welcome  back ${data.user.full_name}!`,
+                            timer: 1500,
+                            showConfirmButton: false,
+                            timerProgressBar: true
+                        });
+                        
+                        window.location.replace('main_chat.html');
+                    } else {
+                        showError(data.message || 'Login failed');
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showError('Login failed. Please try again.');
+                } finally {
+                    setButtonLoading(submitBtn, false);
+                    submitBtn.innerHTML = 'Sign In';
+                }
+            });
+
+            // Signup form handler
+            signupForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const name = formData.get('full_name')?.trim();
+                const email = formData.get('email')?.trim();
+                const password = formData.get('password');
+                const confirmPassword = formData.get('confirm_password');
+                const submitBtn = this.querySelector('.btn-auth');
+
+                errorMessage.style.display = 'none';
+
+                if (!name || !email || !password || !confirmPassword) {
+                    showError('Please fill in all fields');
+                    return;
+                }
+
+                if (!validateEmail(email)) {
+                    showError('Please enter a valid email address');
+                    return;
+                }
+
+                if (!validatePassword(password)) {
+                    showError('Password must be at least 6 characters long');
+                    return;
+                }
+
+                if (password !== confirmPassword) {
+                    showError('Passwords do not match');
+                    return;
+                }
+
+                setButtonLoading(submitBtn, true);
+
+                try {
+                    const response = await fetch('signup.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                        
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Welcome!',
+                            text: 'Account created successfully!',
+                            timer: 1500,
+                            showConfirmButton: false,
+                            timerProgressBar: true
+                        });
+                        
+                        window.location.replace('main_chat.html');
+                    } else if (data.status === 'otp_sent') {
+                        document.getElementById('signupForm').style.display = 'none';
+                        const otpDiv = document.createElement('div');
+                        otpDiv.innerHTML = `
+                            <div class="form-group">
+                                <label class="form-label">Enter OTP sent to your email</label>
+                                <input type="text" class="form-control" id="otpInput" maxlength="6" required>
+                            </div>
+                            <button class="btn-auth" id="verifyOtpBtn">Verify OTP</button>
+                        `;
+                        document.querySelector('.auth-card').appendChild(otpDiv);
+
+                        document.getElementById('verifyOtpBtn').onclick = async function() {
+                            const otp = document.getElementById('otpInput').value.trim();
+                            if (!otp) {
+                                showError('Please enter the OTP');
+                                return;
+                            }
+                            const res = await fetch('verify_otp.php', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({user_id: data.user_id, otp: otp})
+                            });
+                            const otpData = await res.json();
+                            if (otpData.status === 'success') {
+                                Swal.fire({icon: 'success', title: 'Verified!', text: 'Your account is now active.'});
+                                window.location.replace('main_chat.html');
+                            } else {
+                                showError(otpData.message || 'OTP verification failed');
+                            }
+                        };
+                    } else {
+                        showError(data.message || 'Registration failed');
+                    }
+                } catch (error) {
+                    console.error('Signup error:', error);
+                    showError('Registration failed. Please try again.');
+                } finally {
+                    setButtonLoading(submitBtn, false);
+                    submitBtn.innerHTML = 'Create Account';
+                }
+            });
+
+            document.querySelectorAll('.form-control').forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.classList.add('focused');
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.classList.remove('focused');
+                });
+            });
+
+
+        });
+    </script>
+</body>
+</html>
