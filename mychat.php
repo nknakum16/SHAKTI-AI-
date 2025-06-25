@@ -15,11 +15,11 @@ header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
 class ShaktiAI {
-    private $api_url = "https://parthsadaria-lokiai.hf.space/chat/completions";
+    private $api_url = "";
     private $message_history;
     private $headers = [
         'Content-Type: application/json',
-        'Authorization: sigma'
+        'Authorization: '
     ];
 
     private $valid_models = [
